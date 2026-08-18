@@ -5,6 +5,8 @@ let selectedDifficulty = 'medium';
 let timerInterval = null;
 let startTime = 0;
 let elapsedSeconds = 0;
+const SCOREBOARD_KEY = 'sudoku-top-scores';
+let gameSolvedRecorded = false;
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -68,6 +70,7 @@ async function newGame(difficulty = selectedDifficulty) {
 
   renderPuzzle(data.puzzle);
   document.getElementById('message').innerText = '';
+  gameSolvedRecorded = false;
   resetTimer();
 }
 
@@ -111,6 +114,7 @@ async function checkSolution() {
 
   if (incorrect.size === 0) {
     stopTimer();
+    registerSolvedGame();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
   } else {
@@ -180,7 +184,74 @@ function stopTimer() {
   clearInterval(timerInterval);
 }
 
+// Scoreboard functions - moved to global scope
+function sortScores(scores) {
+  return scores
+    .slice()
+    .sort((a, b) => b.score - a.score || a.time - b.time);
+}
+
+function renderScoreboard() {
+  const list = document.getElementById('scoreboard-list');
+  if (!list) return;
+
+  const scores = JSON.parse(localStorage.getItem(SCOREBOARD_KEY) || '[]');
+  const topScores = sortScores(scores).slice(0, 10);
+
+  list.innerHTML = '';
+
+  if (topScores.length === 0) {
+    list.innerHTML = '<li class="scoreboard-empty">No scores yet</li>';
+    return;
+  }
+
+  topScores.forEach((entry, index) => {
+    const item = document.createElement('li');
+    item.className = 'scoreboard-entry';
+
+    const timeText = `${String(Math.floor(entry.time / 60)).padStart(2, '0')}:${String(entry.time % 60).padStart(2, '0')}`;
+
+    item.innerHTML = `
+      <span>#${index + 1}</span>
+      <span>${entry.player}</span>
+      <span>${entry.difficulty}</span>
+      <span>${entry.score}</span>
+      <span>${timeText}</span>
+    `;
+
+    list.appendChild(item);
+  });
+}
+
+function addScoreEntry(entry) {
+  const scores = JSON.parse(localStorage.getItem(SCOREBOARD_KEY) || '[]');
+  scores.push(entry);
+
+  const topScores = sortScores(scores).slice(0, 10);
+  localStorage.setItem(SCOREBOARD_KEY, JSON.stringify(topScores));
+  renderScoreboard();
+}
+
+function registerSolvedGame() {
+  if (gameSolvedRecorded) return;
+
+  const playerName = document.getElementById('player-name')?.value.trim() || 'Player';
+  const score = Math.max(1000 - elapsedSeconds * 5, 100);
+
+  addScoreEntry({
+    player: playerName,
+    score,
+    difficulty: selectedDifficulty,
+    time: elapsedSeconds
+  });
+
+  gameSolvedRecorded = true;
+}
+
+// Page initialization
 window.addEventListener('load', () => {
+  renderScoreboard();
+
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   setTheme(prefersDark);
 
