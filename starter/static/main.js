@@ -6,9 +6,11 @@ let selectedDifficulty = 'medium';
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
+
   for (let i = 0; i < SIZE; i++) {
     const rowDiv = document.createElement('div');
     rowDiv.className = 'sudoku-row';
+
     for (let j = 0; j < SIZE; j++) {
       const input = document.createElement('input');
       input.type = 'text';
@@ -16,12 +18,20 @@ function createBoardElement() {
       input.className = 'sudoku-cell';
       input.dataset.row = i;
       input.dataset.col = j;
+
+      const boxRow = Math.floor(i / 3);
+      const boxCol = Math.floor(j / 3);
+      const isLightSquare = (boxRow + boxCol) % 2 === 0;
+      input.classList.add(isLightSquare ? 'square-light' : 'square-dark');
+
       input.addEventListener('input', (e) => {
         const val = e.target.value.replace(/[^1-9]/g, '');
         e.target.value = val;
       });
+
       rowDiv.appendChild(input);
     }
+
     boardDiv.appendChild(rowDiv);
   }
 }
@@ -103,8 +113,26 @@ async function checkSolution() {
   }
 }
 
-// Wire buttons
+function setTheme(isDark) {
+  document.body.classList.toggle('dark', isDark);
+  const toggle = document.getElementById('theme-toggle');
+  if (toggle) {
+    toggle.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  }
+}
+
 window.addEventListener('load', () => {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  setTheme(prefersDark);
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const isDark = !document.body.classList.contains('dark');
+      setTheme(isDark);
+    });
+  }
+
   document.getElementById('easy-btn').addEventListener('click', () => {
     selectedDifficulty = 'easy';
     newGame(selectedDifficulty);
@@ -126,6 +154,5 @@ window.addEventListener('load', () => {
 
   document.getElementById('check-solution').addEventListener('click', checkSolution);
 
-  // initialize
   newGame(selectedDifficulty);
 });

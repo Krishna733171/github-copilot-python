@@ -6,18 +6,22 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Sudoku Game</h1>
+  <div class="app">
+    <h1>Sudoku Game</h1>
 
-  <div id="sudoku-board"></div>
+    <div id="sudoku-board"></div>
 
-  <div class="controls">
-    <button id="easy-btn" type="button">Easy</button>
-    <button id="medium-btn" type="button">Medium</button>
-    <button id="hard-btn" type="button">Hard</button>
+    <div class="controls">
+      <button id="easy-btn" type="button" class="secondary">Easy</button>
+      <button id="medium-btn" type="button" class="secondary">Medium</button>
+      <button id="hard-btn" type="button" class="secondary">Hard</button>
 
-    <button id="new-game" type="button">New Game</button>
-    <button id="check-solution" type="button">Check Solution</button>
-    <span id="message"></span>
+      <button id="new-game" type="button">New Game</button>
+      <button id="check-solution" type="button">Check Solution</button>
+      <button id="theme-toggle" type="button" class="secondary">Dark Mode</button>
+
+      <span id="message"></span>
+    </div>
   </div>
 
   <script src="/static/main.js"></script>
