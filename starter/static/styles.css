@@ -173,6 +173,19 @@ button:active {
   color: var(--text);
 }
 
+#timer {
+  min-width: 80px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  line-height: 1;
+}
+
 @media (max-width: 600px) {
   body {
     padding: 12px 8px;
