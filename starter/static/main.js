@@ -1,6 +1,7 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 let puzzle = [];
+let selectedDifficulty = 'medium';
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -47,8 +48,9 @@ function renderPuzzle(puz) {
   }
 }
 
-async function newGame() {
-  const res = await fetch('/new');
+async function newGame(difficulty = selectedDifficulty) {
+  const url = difficulty ? `/new?difficulty=${difficulty}` : '/new';
+  const res = await fetch(url);
   const data = await res.json();
   renderPuzzle(data.puzzle);
   document.getElementById('message').innerText = '';
@@ -66,19 +68,23 @@ async function checkSolution() {
       board[i][j] = val ? parseInt(val, 10) : 0;
     }
   }
+
   const res = await fetch('/check', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({board})
   });
+
   const data = await res.json();
   const msg = document.getElementById('message');
+
   if (data.error) {
     msg.style.color = '#d32f2f';
     msg.innerText = data.error;
     return;
   }
-  const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
+
+  const incorrect = new Set(data.incorrect.map(x => x[0] * SIZE + x[1]));
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
     if (inp.disabled) continue;
@@ -87,6 +93,7 @@ async function checkSolution() {
       inp.className = 'sudoku-cell incorrect';
     }
   }
+
   if (incorrect.size === 0) {
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
@@ -98,8 +105,27 @@ async function checkSolution() {
 
 // Wire buttons
 window.addEventListener('load', () => {
-  document.getElementById('new-game').addEventListener('click', newGame);
+  document.getElementById('easy-btn').addEventListener('click', () => {
+    selectedDifficulty = 'easy';
+    newGame(selectedDifficulty);
+  });
+
+  document.getElementById('medium-btn').addEventListener('click', () => {
+    selectedDifficulty = 'medium';
+    newGame(selectedDifficulty);
+  });
+
+  document.getElementById('hard-btn').addEventListener('click', () => {
+    selectedDifficulty = 'hard';
+    newGame(selectedDifficulty);
+  });
+
+  document.getElementById('new-game').addEventListener('click', () => {
+    newGame(selectedDifficulty);
+  });
+
   document.getElementById('check-solution').addEventListener('click', checkSolution);
+
   // initialize
-  newGame();
+  newGame(selectedDifficulty);
 });

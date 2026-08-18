@@ -87,6 +87,23 @@ class TestNewGameRoute:
         filled = sum(1 for row in puzzle for cell in row if cell != 0)
         assert filled == 40
     
+    @pytest.mark.parametrize(
+        "path, expected_clues",
+        [
+            ("/new?difficulty=easy", 45),
+            ("/new?difficulty=medium", 35),
+            ("/new?difficulty=hard", 26),
+            ("/new", 35),          # default should be medium
+            ("/new?clues=35", 35), # old behavior still works
+        ],
+    )
+    def test_new_game_difficulty_and_default_clues(self, client, path, expected_clues):
+        """Check difficulty names, default behavior, and old clues route."""
+        response = client.get(path)
+        puzzle = response.get_json()["puzzle"]
+        filled = sum(1 for row in puzzle for cell in row if cell != 0)
+        assert filled == expected_clues
+    
     def test_new_game_stores_solution(self, client):
         """✓ Check: /new stores solution so /check can validate it"""
         client.get('/new')
@@ -147,3 +164,4 @@ class TestCheckRoute:
         response = with_active_game.post('/check', json={'board': CURRENT['solution']})
         data = response.get_json()
         assert isinstance(data['incorrect'], list)
+
