@@ -119,6 +119,30 @@ async function checkSolution() {
   }
 }
 
+async function getHint() {
+  const res = await fetch('/hint', { method: 'POST' });
+
+  const data = await res.json();
+  if (data.error) {
+    document.getElementById('message').innerText = data.error;
+    return;
+  }
+
+  const row = data.row;
+  const col = data.col;
+  const value = data.value;
+
+  const input = document.querySelector(`.sudoku-cell[data-row="${row}"][data-col="${col}"]`);
+  if (!input) return;
+
+  input.value = value;
+  input.disabled = true;
+  input.classList.add('prefilled');
+  input.classList.remove('incorrect');
+
+  document.getElementById('message').innerText = 'Hint used!';
+}
+
 function setTheme(isDark) {
   document.body.classList.toggle('dark', isDark);
   const toggle = document.getElementById('theme-toggle');
@@ -188,6 +212,27 @@ window.addEventListener('load', () => {
   });
 
   document.getElementById('check-solution').addEventListener('click', checkSolution);
+
+  document.getElementById('hint-btn').addEventListener('click', async () => {
+    const res = await fetch('/hint', { method: 'POST' });
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById('message').innerText = data.error;
+      return;
+    }
+
+    const row = data.row;
+    const col = data.col;
+    const value = data.value;
+
+    const input = document.querySelector(`.sudoku-cell[data-row="${row}"][data-col="${col}"]`);
+    if (!input) return;
+
+    input.value = value;
+    input.disabled = true;
+    input.classList.add('prefilled');
+  });
 
   newGame(selectedDifficulty);
 });

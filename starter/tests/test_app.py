@@ -165,3 +165,56 @@ class TestCheckRoute:
         data = response.get_json()
         assert isinstance(data['incorrect'], list)
 
+
+def test_hint_returns_one_correct_cell(client):
+    client.get('/new')
+    response = client.post('/hint')
+    assert response.status_code == 200
+
+    data = response.get_json()
+    row = data['row']
+    col = data['col']
+    value = data['value']
+
+    assert 0 <= row < 9
+    assert 0 <= col < 9
+    assert CURRENT['puzzle'][row][col] == value
+    assert CURRENT['solution'][row][col] == value
+
+
+def test_hint_only_fills_empty_cell(client):
+    client.get('/new')
+    puzzle_before = [row[:] for row in CURRENT['puzzle']]
+
+    response = client.post('/hint')
+    data = response.get_json()
+
+    row = data['row']
+    col = data['col']
+
+    assert puzzle_before[row][col] == 0
+    assert CURRENT['puzzle'][row][col] == CURRENT['solution'][row][col]
+
+
+def test_hint_does_not_reveal_entire_solution(client):
+    client.get('/new')
+    before = [row[:] for row in CURRENT['puzzle']]
+
+    response = client.post('/hint')
+    data = response.get_json()
+
+    diff_count = 0
+    for i in range(9):
+        for j in range(9):
+            if before[i][j] != CURRENT['puzzle'][i][j]:
+                diff_count += 1
+
+    assert diff_count == 1
+
+
+def test_hint_without_game_returns_error(client):
+    CURRENT['puzzle'] = None
+    CURRENT['solution'] = None
+    response = client.post('/hint')
+    assert response.status_code == 400
+
